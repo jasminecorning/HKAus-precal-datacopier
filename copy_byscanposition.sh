@@ -77,7 +77,7 @@ while true; do
 	# check if log file is for a completed run
 	if [[ -n "$(grep "log_run_completion:165" ${log_file})" ]]; then
 		log_func "Most recent run log is for a completed run, waiting for new run..."
-		sleep 5
+		sleep 5m
 		break_timer=$((break_timer+5))
 		if [[ "$break_timer" -ge 60 ]]; then break; fi
 		continue # return to top and look for a newer run log
@@ -89,7 +89,7 @@ while true; do
 	# return to loop start if no complete wavedumps in log file yet
 	if [[ -z "$last_wavedump" ]]; then
 		log_func "No complete wavedumps found in $log_file, waiting..."
-		sleep 2
+		sleep 2m
 		break_timer=$((break_timer+2))
 		if [[ "$break_timer" -ge 60 ]]; then break; fi
 		continue
@@ -116,7 +116,7 @@ while true; do
 	new_files=$(wc -l < copy_list.txt)
 	if [[ "$new_files" == "0" ]]; then
 		log_func "No new raw files found, waiting..."
-		sleep 5
+		sleep 5m
 		break_timer=$((break_timer+5))
 		if [[ "$break_timer" -ge 60 ]]; then break; fi
 		continue # return to loop start
@@ -129,7 +129,7 @@ while true; do
 	# reset timer
 	break_timer=5
 	log_func "Rsync complete."
-	sleep 5
+	sleep 5m
 done
 
 log_func "No new wavesaves found for 60 minutes, automatically closing data copier."
