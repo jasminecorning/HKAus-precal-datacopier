@@ -26,7 +26,7 @@ copy_log="rsync_log_${date_started}.txt"
 rsync_mode="avP"
 
 # override defaults with any user input
-while getopts ":h:c:l:r:" option; do
+while getopts ":c:l:r:" option; do
 	case $option in
 		c) # config file
 			config_file=$OPTARG;;
@@ -34,11 +34,7 @@ while getopts ":h:c:l:r:" option; do
 			copy_log=$OPTARG;;
 		r) # rsync dry run mode
 			rsync_mode=$OPTARG;;
-		h) # display help
-			help_func
-			exit;;
 		\?) # invalid input
-			echo "Error: invalid option entered."
 			help_func
 			exit;;
 	esac

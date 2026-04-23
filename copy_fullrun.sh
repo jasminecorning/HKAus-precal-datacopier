@@ -37,7 +37,6 @@ while getopts ":c:l:r:d:" option; do
 		d) # run log
 			run_log=$OPTARG;;
 		\?) #invalid input
-			echo "Error: invalid option entered."
 			help_func
 			exit;;
 	esac
