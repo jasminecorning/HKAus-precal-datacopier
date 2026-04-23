@@ -1,0 +1,7 @@
+# CONFIG FILE FOR DATA COPYING
+# MUST STOP DAEMON BEFORE ALTERING
+
+USER=jcorning
+HOST=spartan.hpc.unimelb.edu.au
+TARGET=/data/projects/punim1378/jcorning/data_test
+RUN_LOG_DIR=/home/jcorning/data_copier
