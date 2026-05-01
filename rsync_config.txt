@@ -4,4 +4,9 @@
 USER=jcorning
 HOST=spartan.hpc.unimelb.edu.au
 TARGET=/data/projects/punim1378/jcorning/data_test
-RUN_LOG_DIR=/home/jcorning/data_copier
+RUN_LOG_DIR=/home/jcorning/HKAus-precal-datacopier
+
+# if run in continous mode - enter all wait times in seconds
+WAITTIME_SHORT=15
+WAITTIME_LONG=30
+WAITTIME_EXIT=300

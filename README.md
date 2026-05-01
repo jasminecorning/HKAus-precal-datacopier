@@ -4,9 +4,9 @@ Script package to easily transfer data from on-site Linux computer where data is
 
 ## Scripts
 
-- `copy_byscanposition.sh`: copy data continously during runs by searching for completed scan positions
+- `copy_continousmode.sh`: copy data continously during runs by searching for completed scan positions
 - `copy_fullrun.sh`: copy all files listed in a run log file [option for full or partial runs]
-- `rsync_config.txt`: example default configuration file
+- `rsync_config.txt`: example configuration file
 
 ## Configuration
 
@@ -16,18 +16,22 @@ USER=username on remote server
 HOST=remote server hostname
 TARGER=target directory for data on remote server
 RUN_LOG_DIR=directory with run logs on local machine
+
+WAITTIME_SHORT=short time interval to sleep in seconds
+WAITTIME_LONG=long time interval to sleep in seconds
+WAITTIME_EXIT=time interval of inactivity to exit copier in seconds
 ```
 
 ## Continous Mode
 
 Run as:
 ```
-./copy_byscanposition.sh
+./copy_continousmode.sh
 ```
 
 Run in rsync dry run mode for testing (no files copied):
 ```
-./copy_byscanposition.sh -r avPn
+./copy_continousmode.sh -r avPn
 ```
 
 Continous data copier `copy_byscanposition.sh` can be used with the following options:
@@ -35,7 +39,7 @@ Continous data copier `copy_byscanposition.sh` can be used with the following op
 - -l: custom file name for copy log (defaults to rsync_log_YYYYMMDD.log)
 - -r: options for rsync (defaults to avP)
 
-Continous data copier will close automatically after an hour or more of inactivity.
+Continous data copier will close automatically after specified period of inactivity.
 
 ## Single Run Mode
 
