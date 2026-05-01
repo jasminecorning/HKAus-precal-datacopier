@@ -9,7 +9,7 @@ help_func()
 	echo "!! Should be started in screen BEFORE data taking begins !!"
 	echo "Script will only copy files from runs in progress"
        	echo 	
-	echo "Usage: ./run_by_run.sh -c <config_file> -l <log_file> -r"
+	echo "Usage: ./copy_continousmode.sh -c <config_file> -l <log_file> -r"
 	echo "Options: "
 	echo "-c: optional configuration file, defaults to rsync_config.txt"
 	echo "-l: optional log file, defaults to rsync_log_YYYYMMDD.txt (YYYYMMDD is date script began running)"
@@ -45,7 +45,7 @@ log_func()
 	echo "$(date '+%Y-%m-%d %H:%M:%S') | $1" | tee -a $copy_log
 }
 
-# get USER, HOST, TARGET, RUN_LOG_DIR from config file
+# get USER, HOST, TARGET, RUN_LOG_DIR, wait times from config file
 source $config_file
 if [ ! -f "$copy_log" ]; then touch $copy_log; fi # make log file if not exists; can append to existing log
 
@@ -67,6 +67,22 @@ fi
 
 break_timer=0
 
+# default wait times if not set in config
+if [[ -z "$WAITTIME_SHORT" ]]; then
+	WAITTIME_SHORT=60 # 1 minute
+fi
+if [[ -z "$WAITTIME_LONG" ]]; then
+	WAITTIME_LONG=300 # 5 minutes
+fi
+if [[ -z "$WAITTIME_EXIT" ]]; then
+	WAITTIME_EXIT=3600 # 1 hour
+fi
+
+# wait times as integers for addition
+declare -i SHORT="$WAITTIME_SHORT"
+declare -i LONG="$WAITTIME_LONG"
+declare -i EXIT="$WAITTIME_EXIT"
+
 # continous loop
 while true; do
 
@@ -76,10 +92,10 @@ while true; do
 
 	# check if log file is for a completed run
 	if [[ -n "$(grep "log_run_completion:165" ${log_file})" ]]; then
-		log_func "Most recent run log is for a completed run, waiting for new run..."
-		sleep 5m
-		break_timer=$((break_timer+5))
-		if [[ "$break_timer" -ge 60 ]]; then break; fi
+		log_func "Most recent run log is for a completed run, waiting ${SHORT}s."
+		sleep $SHORT
+		break_timer=$((break_timer+SHORT))
+		if [[ "$break_timer" -ge "$EXIT" ]]; then break; fi
 		continue # return to top and look for a newer run log
 	fi
 
@@ -88,11 +104,11 @@ while true; do
 
 	# return to loop start if no complete wavedumps in log file yet
 	if [[ -z "$last_wavedump" ]]; then
-		log_func "No complete wavedumps found in $log_file, waiting..."
-		sleep 2m
-		break_timer=$((break_timer+2))
-		if [[ "$break_timer" -ge 60 ]]; then break; fi
-		continue
+		log_func "No complete wavedumps found in $log_file, waiting ${SHORT}s."
+		sleep $SHORT
+		break_timer=$((break_timer+SHORT))
+		if [[ "$break_timer" -ge "$EXIT" ]]; then break; fi
+		continue # return to top to look for completed wavedumps
 	fi
 
 	# read files written for completed wavedumps only
@@ -115,10 +131,10 @@ while true; do
 	# if no new files are present, wait for new wavedumps
 	new_files=$(wc -l < copy_list.txt)
 	if [[ "$new_files" == "0" ]]; then
-		log_func "No new raw files found, waiting..."
-		sleep 5m
-		break_timer=$((break_timer+5))
-		if [[ "$break_timer" -ge 60 ]]; then break; fi
+		log_func "No new raw files found, waiting ${LONG}s."
+		sleep $LONG
+		break_timer=$((break_timer+LONG))
+		if [[ "$break_timer" -ge "$EXIT" ]]; then break; fi
 		continue # return to loop start
 	fi
 
@@ -127,12 +143,12 @@ while true; do
 	rsync -${rsync_mode} --ignore-existing --files-from=copy_list.txt $data_dir ${USER}@${HOST}:${TARGET} | tee -a $copy_log
 	
 	# reset timer
-	break_timer=5
+	break_timer=$LONG
 	log_func "Rsync complete."
-	sleep 5m
+	sleep $LONG
 done
 
-log_func "No new wavesaves found for 60 minutes, automatically closing data copier."
+log_func "No new wavesaves found for ${EXIT}s, automatically closing data copier."
 log_func "---------------------------------"
 
 rm prev_list.txt
