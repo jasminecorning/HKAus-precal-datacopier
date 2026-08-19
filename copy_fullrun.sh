@@ -74,6 +74,7 @@ copy_main()
 		while true; do
 			read -p "Please enter PMT serial number as AAXXXX-A: " prompt
 			PMT_SERIAL=$prompt
+			break
 		done
 	elif [[ "$RUN_TYPE" == "scan" ]]; then
 		# obtain PMT serial no. from pathing
@@ -103,15 +104,19 @@ copy_main()
 		# based on analysis directory structure
 		position_dir="${wavedump##*/}"
 		target_sub_dir="${RUN_TYPE}_${run_id}/${PMT_SERIAL}/${position_dir}"
-		
-		log_func "Copying into sub-directory: ${target_sub_dir}"
+		ssh ${USER}@${HOST} "mkdir -p ${TARGET}/${target_sub_dir}"
+
+		log_func "Verified sub-directory: ${target_sub_dir}"
 		num_files=$(wc -l < file_list.txt)
 		log_func "Found $num_files files, beginning to copy..."
 		((counter += num_files)) # count files identified to transfer
 
 		# run rsync to copy files
-		OUTPUT=$(rsync -${rsync_mode} --stats --progress --ignore-existing --files-from=file_list.txt ${wavedump} ${USER}@${HOST}:${TARGET}/${target_sub_dir} | tee -a $copy_log)	
-		file_count=$(echo "$OUTPUT" | grep "Number of regular files transferred:" | awk -F': ' '{print $2}' | tr -d ',')
+		rsync -${rsync_mode} --stats --progress --ignore-existing --files-from=file_list.txt ${wavedump}/ ${USER}@${HOST}:${TARGET}/${target_sub_dir} | tee -a $copy_log
+		RSYNC_PID=$!
+		wait $RSYNC_PID
+
+		file_count=$(grep "Number of regular files transferred:" $copy_log | tail -n 1 | awk -F': ' '{print $2}' | tr -d ',')
 		((rsync_counter += file_count)) # count successful transfers
 	done
 
